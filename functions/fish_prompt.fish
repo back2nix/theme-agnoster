@@ -190,45 +190,8 @@ function prompt_virtual_env -d "Display Python or Nix virtual environment"
     set envs $envs "py[$py_env]"
   end
 
-  # Support for `nix shell` command in nix 2.4+. Only the packages passed on the command line are
-  # available in PATH, so it is useful to print them all.
-  set nix_packages
-  for p in $PATH
-    set package_name_version (string match --regex '/nix/store/\w+-([^/]+)/.*' $p)[2]
-    if test "$package_name_version"
-      set package_name (string match --regex '^(.*)-(\d+(\.\d)+|unstable-20\d{2}-\d{2}-\d{2})' $package_name_version)[2]
-      if test "$try_to_trim_nix_package_version" = "yes" -a -n "$package_name"
-        set package $package_name
-      else
-        set package $package_name_version
-      end
-      if not contains $package $nix_packages
-        set nix_packages $nix_packages $package
-      end
-    end
-  end
-  if test (count $nix_packages) -gt $max_package_count_visible_in_prompt
-    set nix_packages $nix_packages[1..$max_package_count_visible_in_prompt] "..."
-  end
-
-  if [ "$IN_NIX_SHELL" = "impure" ]
-    # Support for
-    #   1) `nix-shell` command 
-    #   2) `nix develop` command in nix 2.4+.
-    # These commands are typically dumping too many packages into PATH for it be useful to print
-    # them. Thus we only print "nix[impure]".
-    set envs $envs "nix[impure]"
-  else if test "$nix_packages"
-    # Support for `nix-shell -p`. Would print "nix[foo bar baz]".
-    # We check for this case after checking for "impure" because impure brings too many packages 
-    # into PATH.
-    set envs $envs "nix[$nix_packages]"
-  else if test "$IN_NIX_SHELL"
-    # Support for `nix-shell --pure`. Would print "nix[pure]".
-    # We check for this case after checking for individual packages because it otherwise might 
-    # confuse the user into believing when they are in a pure shell, after they have invoked 
-    # `nix shell` from within it.
-    set envs $envs "nix[$IN_NIX_SHELL]"
+  if test -n "$IN_NIX_SHELL"
+    set envs $envs "nix[$name]"
   end
 
   if test "$envs"
