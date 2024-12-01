@@ -227,7 +227,7 @@ function get_hostname -d "Set current hostname to prompt variable $HOSTNAME_PROM
 end
 
 function prompt_dir -d "Display the current directory"
-  prompt_segment $color_dir_bg $color_dir_str (prompt_pwd)
+    prompt_segment $color_dir_bg $color_dir_str (basename (pwd))
 end
 
 
@@ -336,6 +336,7 @@ end
 function fish_prompt
   set -g RETVAL $status
   prompt_status
+  prompt_user
   prompt_virtual_env  # Move this before prompt_dir to show Nix first
   prompt_dir
   if [ (cwd_in_scm_blacklist | wc -c) -eq 0 ]
